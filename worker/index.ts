@@ -158,6 +158,12 @@ function getDemoRedirect(url: URL): string | undefined {
         params.set("hotline", "true");
         return `${DEMO_PATH}?${params}`;
     }
+    // The chromeless embed page is how the demo popup presents just the
+    // emulator screen; let it through (the demo page opens it with its own
+    // params).
+    if (pathname === "/embed") {
+        return undefined;
+    }
     // Page navigations: the SPA index, year/disk paths (which can contain
     // dots, e.g. "System 7.5.5"), and any other extensionless path. Anything
     // else with an extension (or under /assets/) is a file request.
