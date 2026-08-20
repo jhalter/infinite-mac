@@ -158,21 +158,16 @@ function getDemoRedirect(url: URL): string | undefined {
         params.set("hotline", "true");
         return `${DEMO_PATH}?${params}`;
     }
-    // The chromeless embed page is how the demo popup presents just the
-    // emulator screen; let it through (the demo page opens it with its own
-    // params).
-    if (pathname === "/embed") {
-        return undefined;
-    }
-    // Page navigations: the SPA index, year/disk paths (which can contain
-    // dots, e.g. "System 7.5.5"), and any other extensionless path. Anything
-    // else with an extension (or under /assets/) is a file request.
-    const isPage =
+    // Redirect only explicit catalog-page shapes: the SPA index and
+    // year/disk paths (which can contain dots, e.g. "System 7.5.5").
+    // Everything else passes through — including /embed (used by the demo
+    // popup) and the vite dev server's module URLs, which are extensionless
+    // and must not be mistaken for pages.
+    const isCatalogPage =
         pathname === "/" ||
         pathname === "/index.html" ||
-        /^\/\d{4}(\/|$)/.test(pathname) ||
-        (!pathname.startsWith("/assets/") && !pathname.includes("."));
-    return isPage ? `${DEMO_PATH}?hotline=true` : undefined;
+        /^\/\d{4}(\/|$)/.test(pathname);
+    return isCatalogPage ? `${DEMO_PATH}?hotline=true` : undefined;
 }
 
 const LEGACY_DOMAINS: {[domain: string]: string} = {
