@@ -31,6 +31,11 @@ async function handleRequest(
     if (path[0] === "Disk") {
         return disk.handleRequest(request, env.DISK_BUCKET, ctx);
     }
+    // LOCAL PATCH: the app reports metrics to /varz; the KV-backed varz
+    // store was removed from this deployment, so accept and drop them.
+    if (path[0] === "varz") {
+        return new Response(null, {status: 204});
+    }
 
     // LOCAL PATCH: this deployment hosts a single Hotline demo, not the full
     // Infinite Mac catalog. Send every page navigation to the demo run (file
