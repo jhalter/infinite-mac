@@ -148,7 +148,8 @@ function applyCommonHeaders(response: Response, pathname: string) {
 const DEMO_PATH = "/1998/Mac%20OS%208.1";
 
 function getDemoRedirect(url: URL): string | undefined {
-    if (url.pathname === DEMO_PATH) {
+    const {pathname} = url;
+    if (pathname === DEMO_PATH) {
         // Already on the demo page; just make sure Hotline networking is on.
         if (url.searchParams.get("hotline") === "true") {
             return undefined;
@@ -157,11 +158,15 @@ function getDemoRedirect(url: URL): string | undefined {
         params.set("hotline", "true");
         return `${DEMO_PATH}?${params}`;
     }
-    // File requests (extensions, /assets/) are not page navigations.
-    if (url.pathname.startsWith("/assets/") || url.pathname.includes(".")) {
-        return undefined;
-    }
-    return `${DEMO_PATH}?hotline=true`;
+    // Page navigations: the SPA index, year/disk paths (which can contain
+    // dots, e.g. "System 7.5.5"), and any other extensionless path. Anything
+    // else with an extension (or under /assets/) is a file request.
+    const isPage =
+        pathname === "/" ||
+        pathname === "/index.html" ||
+        /^\/\d{4}(\/|$)/.test(pathname) ||
+        (!pathname.startsWith("/assets/") && !pathname.includes("."));
+    return isPage ? `${DEMO_PATH}?hotline=true` : undefined;
 }
 
 const LEGACY_DOMAINS: {[domain: string]: string} = {
