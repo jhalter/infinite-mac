@@ -55,6 +55,13 @@ export function isValidSrcUrl(srcUrl: string) {
         return false;
     }
     const {protocol: srcProtocol, host: srcHost} = srcUrlParsed;
+    // HOTLINE PATCH: allow same-origin dev-server assets (Hotline Tools disk).
+    if (
+        srcProtocol === "http:" &&
+        (srcHost === "localhost:3127" || srcHost === "127.0.0.1:3127")
+    ) {
+        return true;
+    }
     if (srcProtocol !== "https:") {
         return false;
     }

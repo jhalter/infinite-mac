@@ -1,5 +1,6 @@
 import {BroadcastChannelEthernetProvider} from "@/net/BroadcastChannelEthernetProvider";
 import {CloudflareWorkerEthernetProvider} from "@/net/CloudflareWorkerEthernetProvider";
+import {HotlineEthernetProvider} from "@/net/HotlineEthernetProvider";
 import {fromDateString, toDateString} from "@/lib/dates";
 import {
     ALL_DISKS,
@@ -223,6 +224,8 @@ export function runDefFromUrl(urlString: string): RunDef | undefined {
         );
     } else if (searchParams.get("broadcast_channel_ethernet") === "true") {
         ethernetProvider = new BroadcastChannelEthernetProvider();
+    } else if (searchParams.get("hotline") === "true") {
+        ethernetProvider = new HotlineEthernetProvider();
     }
 
     let customDate;
@@ -359,6 +362,8 @@ export function runDefToUrl(runDef: RunDef, toEmbed: boolean = false): string {
         url.searchParams.set("appleTalk", ethernetProvider.zoneName());
     } else if (ethernetProvider instanceof BroadcastChannelEthernetProvider) {
         url.searchParams.set("broadcast_channel_ethernet", "true");
+    } else if (ethernetProvider instanceof HotlineEthernetProvider) {
+        url.searchParams.set("hotline", "true");
     }
     if (runDef.flags.customDate) {
         url.searchParams.set("date", toDateString(runDef.flags.customDate));

@@ -1,4 +1,3 @@
-import * as varz from "./varz";
 import * as cdrom from "./cd-rom";
 import * as disk from "./disk";
 import * as library from "./library";
@@ -9,15 +8,12 @@ export type Assets = {
 };
 
 export type Env = {
-    ETHERNET_ZONE: DurableObjectNamespace;
-    VARZ: KVNamespace;
     DISK_BUCKET: R2Bucket;
     ASSETS: Assets;
 };
 const handler: ExportedHandler<Env> = {fetch: handleRequest};
 
 export default handler;
-export {EthernetZone} from "./ethernet-zone";
 
 async function handleRequest(
     request: Request,
@@ -26,20 +22,6 @@ async function handleRequest(
 ) {
     const url = new URL(request.url);
     const path = url.pathname.slice(1).split("/");
-    if (path[0] === "zone") {
-        const zoneName = path[1];
-        const zoneId = env.ETHERNET_ZONE.idFromName(zoneName);
-        const zone = env.ETHERNET_ZONE.get(zoneId);
-        const zoneUrl = new URL(request.url);
-        zoneUrl.pathname = "/" + path.slice(2).join("/");
-        return zone.fetch(zoneUrl.toString(), request);
-    }
-    if (path[0] === "varz") {
-        return varz.handleRequest(request, env.VARZ);
-    }
-    if (path[0] === "errorz") {
-        return varz.handleErrorzRequest(request, env.VARZ);
-    }
     if (path[0] === "CD-ROM") {
         return cdrom.handleRequest(request, env.DISK_BUCKET);
     }

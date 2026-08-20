@@ -51,3 +51,6 @@ scripts/rclone.conf
 Images/Saved HD.dsk
 Images/The Outside World.dsk
 Images/Infinite HD (NeXT).dsk
+
+# Hotline demo: dev-only test disk (golden image has the client baked in)
+/public/HotlineTools.dsk

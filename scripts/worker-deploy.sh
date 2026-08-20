@@ -2,5 +2,5 @@
 
 tsc --noEmit && \
     tsc --noEmit --project worker/tsconfig.json && \
-    CLOUDFLARE_ENV=production vite build && \
+    vite build && \
     wrangler deploy
