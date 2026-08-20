@@ -7,14 +7,16 @@ export async function handleRequest(
     const path = url.pathname.slice(1).split("/");
     const key = path[1];
 
+    // Locally, serve files directly from the build directory (where
+    // import-disks.py puts them and sync-disks.sh uploads them to R2 from).
+    // LOCAL PATCH: check DEV before the bucket — our flattened wrangler
+    // config binds the production bucket name even in dev, where it resolves
+    // to an empty local R2 simulation.
+    if (import.meta.env.DEV) {
+        const chunkUrl = new URL(`/Images/build/${key}`, url);
+        return Response.redirect(chunkUrl.toString(), 302);
+    }
     if (!bucket) {
-        // Locally we don't have a R2 bucket configured, serve files directly
-        // from the build directory (where import-disks.py puts them and
-        // sync-disks.sh uploads them to R2 from).
-        if (import.meta.env.DEV) {
-            const chunkUrl = new URL(`/Images/build/${key}`, url);
-            return Response.redirect(chunkUrl.toString(), 302);
-        }
         return errorResponse("Bucket not configured", 500);
     }
     if (request.method !== "GET") {
