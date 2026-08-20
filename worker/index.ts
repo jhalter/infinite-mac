@@ -32,6 +32,20 @@ async function handleRequest(
         return disk.handleRequest(request, env.DISK_BUCKET, ctx);
     }
 
+    // LOCAL PATCH: this deployment hosts a single Hotline demo, not the full
+    // Infinite Mac catalog. Send every page navigation to the demo run (file
+    // requests — anything with an extension or under /assets/ — pass through).
+    const demoRedirect = getDemoRedirect(url);
+    if (demoRedirect) {
+        return new Response(null, {
+            status: 302,
+            headers: {
+                "Cache-Control": "private, no-store",
+                "Location": demoRedirect,
+            },
+        });
+    }
+
     const legacyDomainRedirect = getLegacyDomainRedirect(url);
     if (legacyDomainRedirect) {
         return new Response(null, {
@@ -128,6 +142,26 @@ function applyCommonHeaders(response: Response, pathname: string) {
     response.headers.set("Service-Worker-Allowed", "/");
 
     return response;
+}
+
+// LOCAL PATCH: the single run this deployment serves.
+const DEMO_PATH = "/1998/Mac%20OS%208.1";
+
+function getDemoRedirect(url: URL): string | undefined {
+    if (url.pathname === DEMO_PATH) {
+        // Already on the demo page; just make sure Hotline networking is on.
+        if (url.searchParams.get("hotline") === "true") {
+            return undefined;
+        }
+        const params = new URLSearchParams(url.searchParams);
+        params.set("hotline", "true");
+        return `${DEMO_PATH}?${params}`;
+    }
+    // File requests (extensions, /assets/) are not page navigations.
+    if (url.pathname.startsWith("/assets/") || url.pathname.includes(".")) {
+        return undefined;
+    }
+    return `${DEMO_PATH}?hotline=true`;
 }
 
 const LEGACY_DOMAINS: {[domain: string]: string} = {
