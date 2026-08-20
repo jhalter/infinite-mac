@@ -108,6 +108,16 @@ export function runDefFromUrl(urlString: string): RunDef | undefined {
         return undefined;
     }
 
+    // LOCAL PATCH: this deployment serves exactly one thing — the Hotline
+    // demo — so the bare origin IS the demo: "/" is the chromeless embed run
+    // of the golden Mac OS 8.1 image with Hotline networking.
+    if (url.pathname === "/") {
+        url = new URL(
+            "/embed?disk=Mac%20OS%208.1&hotline=true&infinite_hd=true&saved_hd=true",
+            url
+        );
+    }
+
     const {searchParams, pathname} = url;
 
     let isCustom = searchParams.has("edit");

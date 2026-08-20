@@ -57,7 +57,10 @@ async function handleRequest(
         });
     }
 
-    if (canRenderSSR(url)) {
+    // LOCAL PATCH: SSR prerenders the Infinite Mac home page for "/", but
+    // "/" is the Hotline demo run here — serve the plain SPA shell instead.
+    const ssrEnabled = false;
+    if (ssrEnabled && canRenderSSR(url)) {
         const ssrResponse = await renderSSR(request, env, url);
         if (ssrResponse) {
             return applyCommonHeaders(ssrResponse, url.pathname);
@@ -144,30 +147,17 @@ function applyCommonHeaders(response: Response, pathname: string) {
     return response;
 }
 
-// LOCAL PATCH: the single run this deployment serves.
-const DEMO_PATH = "/1998/Mac%20OS%208.1";
-
+// LOCAL PATCH: "/" IS the demo (run-def maps it to the chromeless embed run
+// of the Hotline golden image), so catalog-page URLs canonicalize to "/".
+// Only explicit catalog shapes redirect: /index.html and year/disk paths
+// (which can contain dots, e.g. "System 7.5.5"). Everything else passes
+// through — including /embed and the vite dev server's module URLs, which
+// are extensionless and must not be mistaken for pages.
 function getDemoRedirect(url: URL): string | undefined {
     const {pathname} = url;
-    if (pathname === DEMO_PATH) {
-        // Already on the demo page; just make sure Hotline networking is on.
-        if (url.searchParams.get("hotline") === "true") {
-            return undefined;
-        }
-        const params = new URLSearchParams(url.searchParams);
-        params.set("hotline", "true");
-        return `${DEMO_PATH}?${params}`;
-    }
-    // Redirect only explicit catalog-page shapes: the SPA index and
-    // year/disk paths (which can contain dots, e.g. "System 7.5.5").
-    // Everything else passes through — including /embed (used by the demo
-    // popup) and the vite dev server's module URLs, which are extensionless
-    // and must not be mistaken for pages.
     const isCatalogPage =
-        pathname === "/" ||
-        pathname === "/index.html" ||
-        /^\/\d{4}(\/|$)/.test(pathname);
-    return isCatalogPage ? `${DEMO_PATH}?hotline=true` : undefined;
+        pathname === "/index.html" || /^\/\d{4}(\/|$)/.test(pathname);
+    return isCatalogPage ? "/" : undefined;
 }
 
 const LEGACY_DOMAINS: {[domain: string]: string} = {
